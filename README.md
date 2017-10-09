@@ -3,7 +3,6 @@ Role Name
 
 MySQL v5.7 installation with optionnals user/replication configurations.
 
-[![build status](https://gitrep.services.local/ansible-middlewares/ansible-mysql/badges/develop/build.svg)](https://gitrep.services.local/ansible-middlewares/ansible-mysql/commits/develop)
 
 Requirements
 ------------
@@ -54,7 +53,7 @@ Role Variables
     mysql_replication_password: "repli_pass"
     mysql_backup_password: "backup_pass"
     mysql_app_password: "dbapp_pass"
-    
+
     ### App Databases and Users
     mysql_db:
       - name: 'dbapp'
@@ -187,13 +186,3 @@ Tags
 - [installation] : MySQL installation
 - [rollback] : does nothing yet
 - [testing] : Unit testing for MySQL
-
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-BSO ISL
