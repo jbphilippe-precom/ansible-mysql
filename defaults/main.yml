@@ -1,0 +1,38 @@
+---
+# defaults file for ansible-mysql
+
+mysql_port: 3306
+mysql_bind_address: "127.0.0.1"
+
+mysql_use_lvm: true
+mysql_vg_name: vg_vroot
+mysql_lv_name: lv_mysql
+mysql_lv_size: 10g
+mysql_relaylog_space_limit: "16G"
+mysql_key_buffer_size: "16M"
+mysql_general_log: false
+
+### Replication
+mysql_replication: false
+mysql_replication_gtid: true
+mysql_replication_mode: "mm"
+mysql_replication_binformat: "MIXED"
+mysql_replication_username: "repl_user"
+mysql_replication_password: "repl_pass"
+
+mysql_backup_username: "backup_user"
+mysql_backup_password: "backup_pass"
+
+### SSL
+ssl_mode: false
+
+ssl_certificate_files:
+  - 'ca-key.pem'
+  - 'ca.pem'
+  - 'server-key.pem'
+  - 'server-cert.pem'
+  - 'private_key.pem'
+  - 'public_key.pem'
+  - 'client-key.pem'
+  - 'client-cert.pem'
+

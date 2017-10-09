@@ -1,0 +1,10 @@
+---
+
+- mysql_root_password: "passwd"
+- mysql_replication_username: "repl_user"
+- mysql_replication_password: "passwd"
+- mysql_backup_username: "backup_user"
+- mysql_backup_password: "passwd"
+- mysql_app_username: "app_user"
+- mysql_app_password: "passwd"
+

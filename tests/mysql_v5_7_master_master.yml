@@ -1,0 +1,15 @@
+---
+- hosts: r2x01
+  become: yes
+  roles:
+     - ../ansible-mysql
+  vars_files:
+    - common_users_properties.yml
+  vars:
+    - mysql_replication: true
+    - mysql_replication_mode: "mm"  ## Master/Master
+    - mysql_bind_address: "0.0.0.0"
+    - mysql_key_buffer_size: "32M"
+    - mysql_db:
+      - name: "dbapp"
+        replicate: "yes"

@@ -1,0 +1,13 @@
+---
+
+### Securing MySQL
+
+### Delete anonymous users
+- name: Delete anonymous users
+  mysql_user: login_user=root login_password={{ mysql_root_password }} name="" host=localhost state=absent
+
+### Delete default test database
+- name: Remove the mysql test database
+  #action: mysql_db login_user=root login_password={{ mysql_root_password }} db=test state=absent
+  mysql_db: login_user=root login_password={{ mysql_root_password }} db=test state=absent
+

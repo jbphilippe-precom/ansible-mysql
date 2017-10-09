@@ -1,0 +1,46 @@
+---
+
+### Create/Resize MySQL LV
+- name: Create/Resize MySQL LV
+  lvol: vg={{ mysql_vg_name }} lv={{ mysql_lv_name }} size={{ mysql_lv_size }}
+
+### Install xfsprogs
+#- name: Install xfsprogs
+#  apt: name=xfsprogs state=latest
+
+### Create filesystem
+- name: Create ext4 filesystem for mysql
+  filesystem: fstype=ext4 dev=/dev/{{ mysql_vg_name }}/{{ mysql_lv_name }}
+  register: mysqldatadirformat
+
+### Backup datadir contents when filesystem created
+- name: Temporary backup mysql_datadir
+  shell: cd {{ mysql_datadir }}; tar -zcvf /tmp/ansible_mysql_data.tar.gz ./*
+  when: mysqldatadirformat|changed
+  register: mysqldatadirbackup
+
+### Mount filesystem and create mountpoint in fstab if filesystem created
+- name: Create mounpoint
+  mount: name={{ mysql_datadir }} src=/dev/mapper/{{ mysql_vg_name }}-{{ mysql_lv_name }} fstype=ext4 opts=defaults,noatime,exec,nobarrier state=mounted
+  when: mysqldatadirformat|changed
+
+### Replace datadir in new filesystem mysql_datadir if filesystem created
+- name: Restore mysql_datadir (only if filesystem changed)
+  shell: tar -zxvf /tmp/ansible_mysql_data.tar.gz -C {{ mysql_datadir }}
+  when: mysqldatadirformat|changed
+
+### Remove temp backup and lost+found which is a problem for Mysql.
+- name: Remove temporary datadir backup and lostfound dir
+  file: path={{item}} state=absent
+  when: mysqldatadirbackup|changed
+  with_items:
+    - "{{mysql_datadir}}/lost+found"
+    - "/tmp/ansible_mysql_data.tar.gz"
+
+- name: Set rights on mysql datadir
+  file: path={{ mysql_datadir }} state=directory mode=0755 owner=mysql group=mysql
+
+- name: Restart Mysql
+  service: name=mysql state=restarted
+  when: mysqldatadirformat|changed or mysqldatadirbackup|changed
+

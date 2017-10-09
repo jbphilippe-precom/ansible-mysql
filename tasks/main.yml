@@ -1,0 +1,18 @@
+---
+# tasks file for ansible-mysql
+
+- fail: msg="This play requires 'mysql_root_password' in secret.yml"
+  when: mysql_root_password is not defined
+  tags: [installation]
+
+- include: mysql_install.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
+  tags: [installation]
+
+- include: mysql_rollback.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
+  tags: [rollback]
+
+- include: mysql_testing.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
+  tags: [testing]

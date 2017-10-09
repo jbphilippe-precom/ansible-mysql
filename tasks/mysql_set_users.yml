@@ -1,0 +1,34 @@
+---
+
+### Create databases and associated users
+
+# Create databases user app with all privileges on localhost if default mysql_bind_address 
+- name: Create app user
+  mysql_user: login_user=root login_password={{ mysql_root_password }} name={{ mysql_app_username }} password={{ mysql_app_password }} host=localhost append_privs=yes priv={{ item.name }}.*:ALL state=present
+  with_items: "{{ mysql_db }}"
+ #when: mysql_replication == false and mysql_bind_address == "127.0.0.1"
+
+# Create databases user app with all privileges on mysql_bind_address if provided
+#- name: Create app user
+#  mysql_user: login_user=root login_password={{ mysql_root_password }} name={{ mysql_app_username }} password={{ mysql_app_password }} host={{ mysql_bind_address }} append_privs=yes priv={{ item.name }}.*:ALL state=present
+#  with_items: "{{ mysql_db }}"
+#  when: mysql_bind_address != "127.0.0.1"
+
+# Create databases user app with all privileges
+- name: Create app user
+  mysql_user: login_user=root login_password={{ mysql_root_password }} name={{ mysql_app_username }} password={{ mysql_app_password }} host={{ ansible_default_ipv4.address }} append_privs=yes priv={{ item.name }}.*:ALL state=present
+  with_items: "{{ mysql_db }}"
+  when: mysql_replication == true
+
+
+# Create backup user with standard privileges (localhost allowed only)
+- name: Create backup user
+  mysql_user: login_user=root login_password={{ mysql_root_password }} name={{ mysql_backup_username }} password={{ mysql_backup_password }} host=localhost priv='{{ item.name }}.*:SELECT,LOCK TABLES' state=present
+  with_items: "{{ mysql_db }}"
+
+
+### Create replication users on all nodes, when replication == 'true' (localhost allowed only)
+- name: Create the replication users
+  mysql_user: login_user=root login_password={{ mysql_root_password }} name={{ mysql_replication_username }} password={{ mysql_replication_password }} host="%" priv="*.*:REPLICATION SLAVE,REPLICATION CLIENT" state=present
+  when: mysql_replication == true
+

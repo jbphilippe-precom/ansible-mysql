@@ -1,0 +1,114 @@
+---
+
+# Install Python-mysql
+- name: Install python-mysqldb
+  apt: name={{ item }} update_cache=yes state=latest
+  with_items:
+    - python-mysqldb
+
+- name: Set MySQL root password before installing
+  debconf: name='mysql-server' question='mysql-server/root_password' value={{ mysql_root_password }} vtype='password'
+  when: mysql_root_password is defined
+
+- name: Confirm MySQL root password before installing
+  debconf: name='mysql-server' question='mysql-server/root_password_again' value={{ mysql_root_password }} vtype='password'
+  when: mysql_root_password is defined
+
+# Install Mysql Server
+- name: Install latest mysql-server
+  apt: name=mysql-server state=latest
+  environment:
+    DEBIAN_FRONTEND: 'noninteractive'
+
+# Install Mysql Client
+- name: Install mysql-client
+  apt: name=mysql-client state=latest
+
+# Use LVM ?
+- include: mysql_lvm.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial' and mysql_use_lvm == true
+
+# Check MySQL running
+- name: Check if MySQL running
+  wait_for: port={{ mysql_port }} delay=2 timeout=5
+  register: mysql_state
+  ignore_errors: yes
+
+# Security (mysql_secure_installation)
+- include: mysql_security.yml
+  when: mysql_root_password is defined and mysql_state.failed is not defined
+
+# Configuration (mysqld.cnf)
+- include: mysql_configure.yml
+
+# SSL Configurations
+- include: mysql_ssl_configure.yml
+  when: ssl_mode == true
+
+# Create app and replication users
+- include: mysql_set_users.yml
+  when: mysql_app_username is defined and mysql_app_password is defined and mysql_root_password is defined
+
+
+##########################
+### REPLICATION  MODES ###
+##########################
+
+- name: Create facts dir
+  file: path=/etc/ansible/facts.d/ state=directory owner=root group=root mode=0755
+  when: mysql_replication == true
+
+
+# Include replication Master/Slave (working with multiple slaves)
+- include: mysql_replication_ms.yml
+  when: mysql_replication == true and mysql_replication_mode == "ms" and ansible_local.mysql_replication_state.replication.configured is undefined
+
+# Include Replication to Master/Master mode (with 2 or + master nodes)
+- include: mysql_replication_mm.yml
+  when: mysql_replication == true and mysql_replication_mode == "mm" and ansible_local.mysql_replication_state.replication.configured is undefined
+
+
+##########################
+### Check slave status ###
+##########################
+
+# Check if slave replication running (to be done - eventually check stdout of slavestate). 
+- name: Check slavestate
+  mysql_replication: login_user=root login_password={{ mysql_root_password }} config_file={{ mysql_conf_dir }}/{{ mysql_conf_file }} mode=getslave
+  register: slavestate
+  when: mysql_replication == true and mysql_replication_role == 'slave'
+
+# Display Slave status
+- name: Slave replication process OK
+  debug: msg="Slave seems to be running correctly"
+  when: slavestate is defined and slavestate.Slave_SQL_Running == "Yes" and slavestate.Last_SQL_Error == '' and slavestate.Last_SQL_Errno == 0
+
+# Display Slave status
+- name: Slave replication process not running
+  fail: msg="Slave process seems to have errors"
+  when: slavestate is defined and slavestate.Slave_SQL_Running != "Yes" or slavestate.Last_SQL_Error != '' or slavestate.Last_SQL_Errno != 0
+
+
+##########################
+### Databases Creation ###
+##########################
+
+## Create databases on all servers if replication is false
+- name: "Replication disabled - Create databases on all servers"
+  mysql_db: login_user=root login_password={{ mysql_root_password }} name={{ item.name }} state=present
+  with_items: "{{ mysql_db }}"
+  when: mysql_db|lower() != 'none' and mysql_replication == false
+
+# Create databases just on master if replication is Master/Slave
+- name: "Replication Master/Slave detected - Create databases (on master only)"
+  mysql_db: login_user=root login_password={{ mysql_root_password }} name={{ item.name }} state=present
+  with_items: "{{ mysql_db }}"
+  when: mysql_db|lower() != 'none' and mysql_replication == true and mysql_replication_mode == "ms" and mysql_replication_role == 'master'
+
+# Create databases just on first master if replication is Master/Master
+- name: "Replication Master/Master detected - Create databases (on one master only)"
+  mysql_db: login_user=root login_password={{ mysql_root_password }} name={{ item.name }} state=present
+  with_items: "{{ mysql_db }}"
+  when: mysql_db|lower() != 'none' and mysql_replication == true and mysql_replication_mode == "mm" and mysql_replication_role == 'master' and inventory_hostname == play_hosts[0]
+
+

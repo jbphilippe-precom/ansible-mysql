@@ -1,0 +1,29 @@
+---
+
+### Generate Configure SSL
+
+#- name: Mysql SSL Autogeneration
+#  shell: mysql_ssl_rsa_setup --uid=mysql
+#  when: ssl_mode == true
+#  register: mysqlconfigssl
+
+# Copy SSL files. If not provided, this list takes default filenames (pregenerated certificates).
+- name: Copy SSL files
+  copy: src={{ item }} dest={{ mysql_datadir }} owner=mysql group=mysql mode=0644
+  with_items:
+    - "{{ ssl_certificate_files }}"
+  register: sslserverfiles
+
+#- name: Copy Server SSL Files
+#  copy: src={{ item }} dest={{ mysql_datadir }} owner=mysql group=mysql mode=0644
+#  with_items: 
+#    - "{{ ssl_ca_cert }}"
+#    - "{{ ssl_ca_key }}"
+#    - "{{ ssl_server_cert }}"
+#    - "{{ ssl_server_key }}"
+#  register: sslserverfiles
+
+- name: Restart MySQL
+  service: name=mysql state=restarted
+  when: mysqlconfigfile|changed or sslserverfiles|changed
+

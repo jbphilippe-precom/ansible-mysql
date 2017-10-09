@@ -1,0 +1,174 @@
+#
+# The MySQL database server configuration file.
+#
+# You can copy this to one of:
+# - "/etc/mysql/my.cnf" to set global options,
+# - "~/.my.cnf" to set user-specific options.
+# 
+# One can use all long options that the program supports.
+# Run program with --help to get a list of available options and with
+# --print-defaults to see which it would actually understand and use.
+#
+# For explanations see
+# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
+
+# This will be passed to all mysql clients
+# It has been reported that passwords should be enclosed with ticks/quotes
+# escpecially if they contain "#" chars...
+# Remember to edit /etc/mysql/debian.cnf when changing the socket location.
+
+# Here is entries for some specific programs
+# The following values assume you have at least 32M ram
+
+[client]
+port		= {{ mysql_port }}
+socket		= /var/run/mysqld/mysqld.sock
+
+{% if ssl_mode == true %}
+# ssl_mode == true ###
+#Declare Certificates
+{% endif %}
+
+
+[mysqld_safe]
+socket		= /var/run/mysqld/mysqld.sock
+nice		= 0
+
+
+[mysqld]
+#
+# * Basic Settings
+#
+user		= mysql
+pid-file	= /var/run/mysqld/mysqld.pid
+socket		= /var/run/mysqld/mysqld.sock
+port		= {{ mysql_port }}
+basedir		= /usr
+datadir		= {{ mysql_datadir }}
+tmpdir		= /tmp
+lc-messages-dir	= /usr/share/mysql
+skip-external-locking
+character-set-server	= utf8
+
+
+#
+# Instead of skip-networking the default is now to listen only on
+# localhost which is more compatible and is not less secure.
+
+{% if mysql_replication == true and mysql_bind_address == "127.0.0.1" %}
+bind-address		= 0.0.0.0
+{% else %}
+bind-address		= {{ mysql_bind_address }}
+{% endif %}
+
+#
+# * Fine Tuning
+#
+key_buffer_size		= {{ mysql_key_buffer_size }}
+max_allowed_packet	= 16M
+thread_stack		= 192K
+thread_cache_size       = 8
+# This replaces the startup script and checks MyISAM tables if needed
+# the first time they are touched
+myisam-recover-options  = BACKUP
+#max_connections        = 100
+#table_cache            = 64
+#thread_concurrency     = 10
+#
+# * Query Cache Configuration
+#
+query_cache_limit	= 1M
+query_cache_size        = 16M
+#
+# * Logging and Replication
+#
+# Both location gets rotated by the cronjob.
+# Be aware that this log type is a performance killer.
+# As of 5.1 you can enable the log at runtime!
+{% if mysql_general_log == true %}
+general_log_file        = /var/log/mysql/mysql.log
+general_log             = 1
+{% endif %}
+#
+# Error log - should be very few entries.
+#
+log_error_verbosity	= 1
+log_error 	= /var/log/mysql/error.log
+#
+# Here you can see queries with especially long duration
+#log_slow_queries	= /var/log/mysql/mysql-slow.log
+#long_query_time = 2
+#log-queries-not-using-indexes
+#
+# The following can be used as easy to replay backup logs or for replication.
+# note: if you are setting up a replication slave, see README.Debian about
+#       other settings you may need to change.
+#server-id		= 1
+#log_bin			= /var/log/mysql/mysql-bin.log
+expire_logs_days = 10
+#binlog_do_db		= include_database_name
+#binlog_ignore_db	= include_database_name
+
+{% if mysql_replication == true %}
+server-id		= {{ mysql_srv_id }}
+log-slave-updates
+replicate-same-server-id = 0
+binlog_format		= {{ mysql_replication_binformat }}
+
+{% if mysql_replication_gtid == true %}
+gtid-mode=on
+enforce-gtid-consistency
+{% endif %}
+
+
+{% if mysql_replication_role == 'master' %}
+### Mysql MASTER 
+max_binlog_size             = 100M
+# avoid primary key conflicts 
+auto_increment_increment    = 2
+auto_increment_offset       = {{ mysql_srv_id }}
+log-bin = {{ mysql_datadir }}/mysql-bin
+
+{% if mysql_db is iterable and mysql_db is not string %}
+
+{% for i in mysql_db %}
+{% if i.replicate and i.replicate == 'yes' %}
+binlog_do_db = {{ i.name }}
+{% endif %}
+{% endfor %}
+
+{% for i in mysql_db %}
+{% if not i.replicate or i.replicate == 'no' %}
+binlog_ignore_db = {{ i.name }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if mysql_replication_role == 'slave' %}
+relay-log-space-limit = {{ mysql_relaylog_space_limit }}
+read-only=1
+relay_log=relay-log
+skip-slave-start
+{% endif %}
+{% endif %}
+
+#
+# * InnoDB
+#
+# InnoDB is enabled by default with a 10MB datafile in /var/lib/mysql/.
+# Read the manual for more InnoDB related options. There are many!
+#
+# * Security Features
+#
+# Read the manual, too, if you want chroot!
+# chroot = /var/lib/mysql/
+#
+# For generating SSL certificates I recommend the OpenSSL GUI "tinyca".
+#
+
+{% if ssl_mode == true %}
+### ssl_mode == true ###
+#Declare Certificates
+{% endif %}
+

@@ -1,0 +1,25 @@
+---
+# mysql testing
+
+- shell: mysql -V
+  register: mysql_installed_version
+  changed_when: false
+
+- name: Display Mysql Version
+  debug: msg={{ mysql_installed_version.stdout }}
+
+# mysql listening 
+- name: Is mysql server listening ?
+  wait_for: port={{ mysql_port }} delay=2 timeout=10
+
+
+### Could be added later ###
+# logrotate
+#- stat: path=/etc/logrotate.d/mysql-server
+#  register: mysqlserver_logrotate
+
+#- name: Verify that logrotate is configured
+#  assert:
+#    that:
+#      - mysqlserver_logrotate.stat.exists
+

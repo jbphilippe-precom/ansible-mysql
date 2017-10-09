@@ -1,0 +1,18 @@
+---
+
+### Configure MySQL
+
+### Copy template mysqld.cnf
+- name: Copy mysql template configuration
+  template: src=mysqld.cnf.j2 dest={{ mysql_conf_dir }}/{{ mysql_conf_file }} owner=root group=root mode=0644
+  register: mysqlconfigfile
+
+#- name: Mysql SSL Autogeneration
+#  shell: mysql_ssl_rsa_setup --uid=mysql
+#  when: ssl_mode == true
+#  register: mysqlconfigssl
+
+- name: Restart MySQL
+  service: name=mysql state=restarted
+  when: mysqlconfigfile|changed
+

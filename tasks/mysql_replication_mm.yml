@@ -1,0 +1,41 @@
+---
+
+### Retrieve Master informations
+- name: Get master binlog filename and position
+  mysql_replication: login_user=root login_password={{ mysql_root_password }} config_file={{ mysql_conf_dir }}/{{ mysql_conf_file }} mode=getmaster
+  delegate_to: "{{ mysql_master_ip }}"
+  register: masterstate
+  when: mysql_replication_gtid == false
+
+# Stop slave 
+- name: Stop slave processes
+  mysql_replication: login_user=root login_password={{ mysql_root_password }} config_file={{ mysql_conf_dir }}/{{ mysql_conf_file }} mode=stopslave
+
+# Reset slave parameters
+- name: Reset slave processes
+  mysql_replication: login_user=root login_password={{ mysql_root_password }} config_file={{ mysql_conf_dir }}/{{ mysql_conf_file }} mode=resetslave
+
+
+# Each node will join his master
+- name: Change master using master_auto_position
+  mysql_replication: login_user=root login_password={{ mysql_root_password }} config_file={{ mysql_conf_dir }}/{{ mysql_conf_file }} mode=changemaster master_host={{ mysql_master_ip }} master_user={{ mysql_replication_username }} master_password={{ mysql_replication_password }} master_port={{ mysql_port }} master_auto_position=yes master_connect_retry=10
+  when: mysql_replication_gtid == true
+  ignore_errors: yes
+
+- name: Change master using BinFile & BinPosition informations
+  mysql_replication: login_user=root login_password={{ mysql_root_password }} config_file={{ mysql_conf_dir }}/{{ mysql_conf_file }} mode=changemaster master_host={{ mysql_master_ip }} master_user={{ mysql_replication_username }} master_password={{ mysql_replication_password }} master_port={{ mysql_port }} master_log_file={{ masterstate.File }} master_log_pos={{ masterstate.Position }} master_connect_retry=10
+  when: mysql_replication_gtid == false
+  ignore_errors: yes
+
+
+# Start slave(s)
+- name: Start slave(s) process
+  mysql_replication: login_user=root login_password={{ mysql_root_password }} config_file={{ mysql_conf_dir }}/{{ mysql_conf_file }} mode=startslave
+  register: mysql_replication_configured
+
+# Create fact for replication idempotence
+- name: Create mysql_replication state fact
+  template: src=mysql_replication_state.j2 dest=/etc/ansible/facts.d/mysql_replication_state.fact owner=root group=root mode=0644
+  when: mysql_replication_configured|changed
+
+

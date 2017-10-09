@@ -1,0 +1,13 @@
+## Xenial ##
+[r1x01]
+unitest04g.be10.local
+[r1x02]
+unitest19g.be10.local
+[r2x01]
+unitest05g.be10.local mysql_srv_id=1  mysql_replication_role='master' mysql_master_ip='192.168.10.56'
+unitest06g.be10.local mysql_srv_id=2  mysql_replication_role='master' mysql_master_ip='192.168.10.55'
+[r2x02]
+unitest20g.be10.local mysql_srv_id=1  mysql_replication_role='master'
+unitest21g.be10.local mysql_srv_id=2  mysql_replication_role='slave' mysql_master_ip='192.168.10.70'
+
+
