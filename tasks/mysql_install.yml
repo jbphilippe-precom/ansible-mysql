@@ -28,6 +28,12 @@
 # - include: mysql_lvm.yml
 #   when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial' and mysql_use_lvm == true
 
+- name: "Ensure MySQL service is started"
+  service:
+    name: mysql
+    enabled: yes
+    state: started
+
 # Check MySQL running
 - name: Check if MySQL running
   wait_for: port={{ mysql_port }} delay=5 timeout=15
