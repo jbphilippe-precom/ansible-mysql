@@ -29,7 +29,7 @@
 #   when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial' and mysql_use_lvm == true
 
 - name: "Ensure MySQL service is started"
-  shell: "service start mysql; systemctl enable mysql"
+  shell: "/etc/init.d/mysql start"
 
 # Check MySQL running
 - name: Check if MySQL running
