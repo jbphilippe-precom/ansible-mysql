@@ -81,15 +81,15 @@
   register: slavestate
   when: mysql_replication == true and mysql_replication_role == 'slave'
 
-# Display Slave status
-- name: Slave replication process OK
-  debug: msg="Slave seems to be running correctly"
-  when: slavestate is defined and slavestate.Slave_SQL_Running == "Yes" and slavestate.Last_SQL_Error == '' and slavestate.Last_SQL_Errno == 0
+# Display Slave status - ### actually, condition not working with ansible2.4
+# - name: Slave replication process OK
+#   debug: msg="Slave seems to be running correctly"
+#   when: slavestate is defined and slavestate.Slave_SQL_Running == "Yes" and slavestate.Last_SQL_Error == '' and slavestate.Last_SQL_Errno == 0
 
-# Display Slave status
-- name: Slave replication process not running
-  fail: msg="Slave process seems to have errors"
-  when: slavestate is defined and slavestate.Slave_SQL_Running != "Yes" or slavestate.Last_SQL_Error != '' or slavestate.Last_SQL_Errno != 0
+# Display Slave status - ### actually, condition not working with ansible2.4
+# - name: Slave replication process not running
+#   fail: msg="Slave process seems to have errors"
+#   when: slavestate is defined and slavestate.Slave_SQL_Running != "Yes" or slavestate.Last_SQL_Error != '' or slavestate.Last_SQL_Errno != 0
 
 
 ##########################
