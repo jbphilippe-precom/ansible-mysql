@@ -9,9 +9,9 @@
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
   tags: [installation]
 
-- import_tasks: mysql_rollback.yml
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
-  tags: [rollback]
+# - import_tasks: mysql_rollback.yml
+#   when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
+#   tags: [rollback]
 
 - import_tasks: mysql_testing.yml
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial'
