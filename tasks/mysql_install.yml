@@ -30,7 +30,7 @@
 
 # Check MySQL running
 - name: Check if MySQL running
-  wait_for: port={{ mysql_port }} delay=2 timeout=5
+  wait_for: port={{ mysql_port }} delay=5 timeout=15
   register: mysql_state
   ignore_errors: yes
 
