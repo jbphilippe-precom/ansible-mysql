@@ -32,7 +32,7 @@
   service:
     name: mysql
     enabled: yes
-    state: started
+    state: restarted
 
 # Check MySQL running
 - name: Check if MySQL running
