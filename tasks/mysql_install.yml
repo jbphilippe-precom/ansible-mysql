@@ -25,8 +25,8 @@
   apt: name=mysql-client state=latest
 
 # Use LVM ?
-- include: mysql_lvm.yml
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial' and mysql_use_lvm == true
+# - include: mysql_lvm.yml
+#   when: ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'xenial' and mysql_use_lvm == true
 
 # Check MySQL running
 - name: Check if MySQL running
@@ -72,7 +72,7 @@
 ### Check slave status ###
 ##########################
 
-# Check if slave replication running (to be done - eventually check stdout of slavestate). 
+# Check if slave replication running (to be done - eventually check stdout of slavestate).
 - name: Check slavestate
   mysql_replication: login_user=root login_password={{ mysql_root_password }} config_file={{ mysql_conf_dir }}/{{ mysql_conf_file }} mode=getslave
   register: slavestate
@@ -110,5 +110,3 @@
   mysql_db: login_user=root login_password={{ mysql_root_password }} name={{ item.name }} state=present
   with_items: "{{ mysql_db }}"
   when: mysql_db|lower() != 'none' and mysql_replication == true and mysql_replication_mode == "mm" and mysql_replication_role == 'master' and inventory_hostname == play_hosts[0]
-
-
