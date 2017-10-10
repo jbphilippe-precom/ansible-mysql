@@ -19,10 +19,6 @@ Role Variables
 
     mysql_port: 3306
     mysql_bind_address: 127.0.0.1
-    mysql_use_lvm: true
-    mysql_vg_name: vg_vroot
-    mysql_lv_name: lv_mysql
-    mysql_lv_size: 10g
     mysql_relaylog_space_limit: "16G"
     mysql_key_buffer_size: "16M"
     mysql_general_log: "0"
@@ -65,7 +61,7 @@ Hosts example - Master/Slave Replication
 
     [bddservers]
     192.168.229.150  mysql_srv_id=1  mysql_replication_role='master'
-    192.168.229.200  mysql_srv_id=2  mysql_replication_role='slave' mysql_master_ip='192.168.229.150'
+    192.168.229.200  mysql_srv_id=2  mysql_replication_role='slave' mysql_master_ip='192.168.1.1'
 
 
 Example Playbook - Master/Slave Replication
@@ -109,8 +105,8 @@ Hosts example - Master/Master Replication
 ------------
 
     [bddservers]
-    192.168.229.150  mysql_srv_id=1  mysql_replication_role='master' mysql_master_ip='192.168.229.200'
-    192.168.229.200  mysql_srv_id=2  mysql_replication_role='master' mysql_master_ip='192.168.229.150'
+    192.168.229.150  mysql_srv_id=1  mysql_replication_role='master' mysql_master_ip='192.168.1.2'
+    192.168.229.200  mysql_srv_id=2  mysql_replication_role='master' mysql_master_ip='192.168.1.1'
 
 
 Example Playbook - Master/Master Replication

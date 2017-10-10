@@ -1,7 +1,7 @@
 galaxy_info:
   author: Jean-Baptiste PHILIPPE
-  description: MySQL installation
-  company: Pages Jaunes
+  description: This role installs and configure mysql
+  company: Precom Obseques
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value
