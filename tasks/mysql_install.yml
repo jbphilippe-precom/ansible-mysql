@@ -35,18 +35,18 @@
   ignore_errors: yes
 
 # Security (mysql_secure_installation)
-- include: mysql_security.yml
+- import_tasks: mysql_security.yml
   when: mysql_root_password is defined and mysql_state.failed is not defined
 
 # Configuration (mysqld.cnf)
-- include: mysql_configure.yml
+- import_tasks: mysql_configure.yml
 
 # SSL Configurations
-- include: mysql_ssl_configure.yml
+- import_tasks: mysql_ssl_configure.yml
   when: ssl_mode == true
 
 # Create app and replication users
-- include: mysql_set_users.yml
+- import_tasks: mysql_set_users.yml
   when: mysql_app_username is defined and mysql_app_password is defined and mysql_root_password is defined
 
 
@@ -60,11 +60,11 @@
 
 
 # Include replication Master/Slave (working with multiple slaves)
-- include: mysql_replication_ms.yml
+- import_tasks: mysql_replication_ms.yml
   when: mysql_replication == true and mysql_replication_mode == "ms" and ansible_local.mysql_replication_state.replication.configured is undefined
 
 # Include Replication to Master/Master mode (with 2 or + master nodes)
-- include: mysql_replication_mm.yml
+- import_tasks: mysql_replication_mm.yml
   when: mysql_replication == true and mysql_replication_mode == "mm" and ansible_local.mysql_replication_state.replication.configured is undefined
 
 
